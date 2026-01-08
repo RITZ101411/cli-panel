@@ -21,13 +21,13 @@ export default function Home() {
       </div>
 
       <div className="p-3 border-t" style={{ borderColor: "var(--vscode-panel-border)" }}>
-        <div className="flex gap-2 items-end">
+        <div className="relative">
           <textarea
             ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Send a prompt..."
-            className="flex-1 p-2 rounded text-sm resize-none overflow-y-auto"
+            className="w-full px-3 py-3 pr-16 rounded-lg text-sm resize-none overflow-y-auto"
             style={{
               backgroundColor: "var(--vscode-input-background)",
               color: "var(--vscode-input-foreground)",
@@ -41,14 +41,14 @@ export default function Home() {
             rows={1}
           />
           <button
-            className="px-3 py-2 rounded text-sm"
+            className="absolute bottom-3 right-3 w-8 h-8 rounded-full text-sm flex items-center justify-center"
             style={{
               backgroundColor: "var(--vscode-button-background)",
               color: "var(--vscode-button-foreground)",
               border: "none"
             }}
           >
-            Send
+            ↑
           </button>
         </div>
       </div>
