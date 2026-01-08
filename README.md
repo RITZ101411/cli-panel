@@ -1,1 +1,1 @@
-cli-panel
+ai-cli-panel
