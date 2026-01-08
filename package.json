@@ -10,8 +10,17 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "cliPanel",
+          "title": "CLI Panel",
+          "icon": "$(terminal)"
+        }
+      ]
+    },
     "views": {
-      "explorer": [
+      "cliPanel": [
         {
           "type": "webview",
           "id": "cliPanel",
