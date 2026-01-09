@@ -24,6 +24,7 @@ declare global {
 
 export default function Home() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
+  const messagesEndRef = useRef<HTMLDivElement>(null)
   const vscode = useRef<any>(null)
 
   useEffect(() => {
@@ -51,6 +52,10 @@ export default function Home() {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   const handleSendMessage = (text: string) => {
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -77,6 +82,7 @@ export default function Home() {
             {messages.map((message) => (
               <ChatMessage key={message.id} message={message} />
             ))}
+            <div ref={messagesEndRef} />
           </div>
         )}
       </div>
