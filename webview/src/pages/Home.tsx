@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react"
+import ChatMessage from "../components/ChatMessage"
 
 interface Message {
   type: string;
@@ -86,15 +87,7 @@ export default function Home() {
         ) : (
           <div className="space-y-4">
             {messages.map((message) => (
-              <div key={message.id} className={`${message.type === 'user' ? 'text-right' : 'text-left'}`}>
-                <div className={`inline-block p-3 rounded-lg max-w-[80%] ${
-                  message.type === 'user' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 text-black'
-                }`}>
-                  {message.text}
-                </div>
-              </div>
+              <ChatMessage key={message.id} message={message} />
             ))}
           </div>
         )}
