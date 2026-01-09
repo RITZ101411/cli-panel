@@ -1,5 +1,10 @@
 import * as vscode from 'vscode';
 
+interface Message {
+    type: string;
+    data?: any;
+}
+
 export function activate(context: vscode.ExtensionContext) {
     const provider = new CLIPanelViewProvider(context.extensionUri);
     
@@ -9,6 +14,8 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 class CLIPanelViewProvider implements vscode.WebviewViewProvider {
+    private _view?: vscode.WebviewView;
+
     constructor(private readonly _extensionUri: vscode.Uri) {}
 
     public resolveWebviewView(
@@ -16,6 +23,8 @@ class CLIPanelViewProvider implements vscode.WebviewViewProvider {
         context: vscode.WebviewViewResolveContext,
         _token: vscode.CancellationToken,
     ) {
+        this._view = webviewView;
+
         webviewView.webview.options = {
             enableScripts: true,
             localResourceRoots: [
@@ -24,6 +33,24 @@ class CLIPanelViewProvider implements vscode.WebviewViewProvider {
         };
 
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+
+        webviewView.webview.onDidReceiveMessage((message: Message) => {
+            this._handleMessage(message);
+        });
+    }
+
+    private _handleMessage(message: Message) {
+        switch (message.type) {
+            case 'sendPrompt':
+                this._sendToWebview('response', { text: `Echo: ${message.data.text}` });
+                break;
+        }
+    }
+
+    private _sendToWebview(type: string, data?: any) {
+        if (this._view) {
+            this._view.webview.postMessage({ type, data });
+        }
     }
 
     private _getHtmlForWebview(webview: vscode.Webview) {
