@@ -9,9 +9,10 @@ interface Message {
 
 interface ChatMessage {
   id: string;
-  type: 'user' | 'response';
+  type: 'user' | 'output' | 'error';
   text: string;
   timestamp: Date;
+  outputType?: 'stdout' | 'stderr';
 }
 
 declare global {
@@ -38,13 +39,41 @@ export default function Home() {
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       const message: Message = event.data;
-      if (message.type === 'response') {
-        setMessages(prev => [...prev, {
-          id: Date.now().toString(),
-          type: 'response',
-          text: message.data.text,
-          timestamp: new Date()
-        }]);
+      
+      switch (message.type) {
+        case 'output':
+          setMessages(prev => [...prev, {
+            id: Date.now().toString(),
+            type: message.data.type === 'stderr' ? 'error' : 'output',
+            text: message.data.text,
+            timestamp: new Date(),
+            outputType: message.data.type
+          }]);
+          break;
+        case 'processEnd':
+          setMessages(prev => [...prev, {
+            id: Date.now().toString(),
+            type: 'output',
+            text: `Process exited with code ${message.data.code}`,
+            timestamp: new Date()
+          }]);
+          break;
+        case 'processStopped':
+          setMessages(prev => [...prev, {
+            id: Date.now().toString(),
+            type: 'output',
+            text: 'Process stopped',
+            timestamp: new Date()
+          }]);
+          break;
+        case 'error':
+          setMessages(prev => [...prev, {
+            id: Date.now().toString(),
+            type: 'error',
+            text: `Error: ${message.data.message}`,
+            timestamp: new Date()
+          }]);
+          break;
       }
     };
 
@@ -65,6 +94,7 @@ export default function Home() {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    
     if (vscode.current) {
       vscode.current.postMessage({ type: 'sendPrompt', data: { text: text } });
     }
@@ -75,7 +105,7 @@ export default function Home() {
       <div className="flex-1 p-4 overflow-y-auto">
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 mt-8 select-none">
-            <p>Send a prompt</p>
+            <p>Send a CLI command</p>
           </div>
         ) : (
           <div className="space-y-4">

@@ -36,7 +36,7 @@ export default function MessageInput({ onSendMessage }: MessageInputProps) {
               sendMessage();
             }
           }}
-          placeholder="Send a prompt..."
+          placeholder="Send a CLI command..."
           className="w-full px-3 py-3 pr-16 rounded-lg text-sm resize-none overflow-y-auto"
           style={{
             backgroundColor: "var(--vscode-input-background)",

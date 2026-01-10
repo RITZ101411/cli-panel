@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { spawn, ChildProcess } from 'child_process';
 
 interface Message {
     type: string;
@@ -15,6 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 class CLIPanelViewProvider implements vscode.WebviewViewProvider {
     private _view?: vscode.WebviewView;
+    private _cliProcess?: ChildProcess;
 
     constructor(private readonly _extensionUri: vscode.Uri) {}
 
@@ -42,8 +44,49 @@ class CLIPanelViewProvider implements vscode.WebviewViewProvider {
     private _handleMessage(message: Message) {
         switch (message.type) {
             case 'sendPrompt':
-                this._sendToWebview('response', { text: `Echo: ${message.data.text}` });
+                this._executeCLI(message.data.text);
                 break;
+            case 'stopProcess':
+                this._stopCLI();
+                break;
+        }
+    }
+
+    private _executeCLI(command: string) {
+        if (this._cliProcess) {
+            this._cliProcess.kill();
+        }
+
+        const [cmd, ...args] = command.trim().split(' ');
+        this._cliProcess = spawn(cmd, args, {
+            cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
+            shell: true
+        });
+
+        this._cliProcess.stdout?.on('data', (data) => {
+            this._sendToWebview('output', { text: data.toString(), type: 'stdout' });
+        });
+
+        this._cliProcess.stderr?.on('data', (data) => {
+            this._sendToWebview('output', { text: data.toString(), type: 'stderr' });
+        });
+
+        this._cliProcess.on('close', (code) => {
+            this._sendToWebview('processEnd', { code });
+            this._cliProcess = undefined;
+        });
+
+        this._cliProcess.on('error', (error) => {
+            this._sendToWebview('error', { message: error.message });
+            this._cliProcess = undefined;
+        });
+    }
+
+    private _stopCLI() {
+        if (this._cliProcess) {
+            this._cliProcess.kill();
+            this._cliProcess = undefined;
+            this._sendToWebview('processStopped', {});
         }
     }
 
